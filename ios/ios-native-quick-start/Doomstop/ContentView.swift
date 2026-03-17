@@ -57,24 +57,6 @@ struct MainView: View {
     }
 }
 
-struct HomeView: View {
-    var body: some View {
-        Text("Home").foregroundColor(Theme.Colors.text)
-    }
-}
-
-struct ProgressView: View {
-    var body: some View {
-        Text("Progress").foregroundColor(Theme.Colors.text)
-    }
-}
-
-struct SettingsView: View {
-    var body: some View {
-        Text("Settings").foregroundColor(Theme.Colors.text)
-    }
-}
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()

@@ -34,72 +34,61 @@ enum ModalScreen: String, CaseIterable {
 // MARK: - Navigation State Manager
 @MainActor
 class NavigationRouter: ObservableObject {
-    
+
     // MARK: - Published Properties
     @Published var currentPhase: AppPhase = .onboarding
     @Published var selectedTab: MainTab = .home
     @Published var presentedModal: ModalScreen?
-    
+
+    // MARK: - Sheet triggers
+    @Published var showIntentionSheet: Bool = false
+    @Published var showTaskSheet: Bool = false
+    @Published var showGateSheet: Bool = false
+
     // MARK: - Phase Navigation
     func navigateToPhase(_ phase: AppPhase) {
         withAnimation(.easeInOut(duration: 0.3)) {
             currentPhase = phase
-            // Reset to default tab when entering main phase
             if phase == .main {
                 selectedTab = .home
             }
-            // Clear any presented modals when changing phases
             presentedModal = nil
         }
     }
-    
+
     // MARK: - Tab Navigation
     func selectTab(_ tab: MainTab) {
         guard currentPhase == .main else { return }
-        
         withAnimation(.easeInOut(duration: 0.2)) {
             selectedTab = tab
-            // Clear modal when switching tabs
             presentedModal = nil
         }
     }
-    
+
     // MARK: - Modal Presentation
     func presentModal(_ modal: ModalScreen) {
         guard currentPhase == .main else { return }
-        
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
             presentedModal = modal
         }
     }
-    
+
     func dismissModal() {
         withAnimation(.easeInOut(duration: 0.2)) {
             presentedModal = nil
         }
     }
-    
+
     // MARK: - Modal State
     var isModalPresented: Bool {
         presentedModal != nil
     }
-    
+
     // MARK: - Convenience Methods
-    func goToMain() {
-        navigateToPhase(.main)
-    }
-    
-    func goToOnboarding() {
-        navigateToPhase(.onboarding)
-    }
-    
-    func goToAppSelect() {
-        navigateToPhase(.appSelect)
-    }
-    
-    func goToIntention() {
-        navigateToPhase(.intention)
-    }
+    func goToMain() { navigateToPhase(.main) }
+    func goToOnboarding() { navigateToPhase(.onboarding) }
+    func goToAppSelect() { navigateToPhase(.appSelect) }
+    func goToIntention() { navigateToPhase(.intention) }
 }
 
 // MARK: - Navigation Router Key for Environment
