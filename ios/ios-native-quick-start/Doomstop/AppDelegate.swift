@@ -1,9 +1,9 @@
 //
 //  AppDelegate.swift
-//  swiftly
+//  Doomstop
 //
 //  Created by Kevin Freeman on 12/08/2020.
-//  Copyright © 2020 Kevin Freeman. All rights reserved.
+//  Copyright 2020 Kevin Freeman. All rights reserved.
 //
 
 import UIKit

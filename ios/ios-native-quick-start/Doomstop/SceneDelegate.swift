@@ -1,9 +1,9 @@
 //
 //  SceneDelegate.swift
-//  swiftly
+//  Doomstop
 //
-//  Created by Kevin Freeman on 12/08/2020.
-//  Copyright © 2020 Kevin Freeman. All rights reserved.
+//  Created by Boris Manoilov on 15/03/2026.
+//  Copyright © 2026 Boris Manoilov. All rights reserved.
 //
 
 import UIKit
@@ -21,6 +21,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // Create the SwiftUI view that provides the window contents.
         let contentView = ContentView()
+    .environmentObject(NavigationRouter())
+    .environmentObject(AppState())
 
         // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
