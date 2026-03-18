@@ -36,19 +36,26 @@ struct MainView: View {
     @EnvironmentObject var appState: AppState
 
     var body: some View {
-        ZStack {
-            TabView(selection: $navigationRouter.selectedTab) {
-                HomeView()
-                    .tabItem { Label("Home", systemImage: "house.fill") }
-                    .tag(MainTab.home)
-                ProgressScreenView()
-                    .tabItem { Label("Progress", systemImage: "chart.bar.fill") }
-                    .tag(MainTab.progress)
-                SettingsView()
-                    .tabItem { Label("Settings", systemImage: "gearshape.fill") }
-                    .tag(MainTab.settings)
+        ZStack(alignment: .bottom) {
+            Color(hex: "#F5F2EA").ignoresSafeArea()
+
+            // Page content
+            ZStack {
+                switch navigationRouter.selectedTab {
+                case .home:
+                    HomeView()
+                        .environmentObject(appState)
+                        .environmentObject(navigationRouter)
+                case .progress:
+                    ProgressScreenView()
+                        .environmentObject(appState)
+                case .settings:
+                    SettingsView()
+                        .environmentObject(appState)
+                        .environmentObject(navigationRouter)
+                }
             }
-            .accentColor(Theme.Colors.accent)
+            .padding(.bottom, 80)
 
             // Milestone overlay
             if let milestone = appState.pendingMilestone {
@@ -69,6 +76,15 @@ struct MainView: View {
                 .transition(.opacity)
                 .zIndex(99)
             }
+
+            // Custom tab bar
+            VStack(spacing: 0) {
+                Spacer()
+                CustomTabBar()
+                    .environmentObject(navigationRouter)
+                    .environmentObject(appState)
+            }
+            .ignoresSafeArea(edges: .bottom)
         }
         .animation(.easeInOut(duration: 0.4), value: appState.pendingMilestone)
         .animation(.easeInOut(duration: 0.4), value: appState.pendingTierUnlock)
