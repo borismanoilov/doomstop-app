@@ -49,7 +49,29 @@ struct MainView: View {
                     .tag(MainTab.settings)
             }
             .accentColor(Theme.Colors.accent)
+
+            // Milestone overlay
+            if let milestone = appState.pendingMilestone {
+                MilestoneView(streak: milestone) {
+                    appState.pendingMilestone = nil
+                }
+                .transition(.opacity)
+                .zIndex(100)
+            }
+
+            // Tier unlock overlay
+            if let tier = appState.pendingTierUnlock {
+                TierUnlockView(tier: tier) {
+                    if tier == "t2" { appState.hasSeenT2Unlock = true }
+                    if tier == "t3" { appState.hasSeenT3Unlock = true }
+                    appState.pendingTierUnlock = nil
+                }
+                .transition(.opacity)
+                .zIndex(99)
+            }
         }
+        .animation(.easeInOut(duration: 0.4), value: appState.pendingMilestone)
+        .animation(.easeInOut(duration: 0.4), value: appState.pendingTierUnlock)
         .sheet(isPresented: $navigationRouter.showTaskSheet) {
             TaskView()
                 .environmentObject(appState)
@@ -69,6 +91,15 @@ struct MainView: View {
             IntentionView()
                 .environmentObject(appState)
                 .environmentObject(navigationRouter)
+        }
+        .sheet(isPresented: $navigationRouter.showWeeklySheet) {
+            WeeklyView()
+                .environmentObject(appState)
+                .environmentObject(navigationRouter)
+        }
+        .onAppear {
+            appState.checkStreakIntegrity()
+            appState.grantWeeklyFreezeIfNeeded()
         }
     }
 }
