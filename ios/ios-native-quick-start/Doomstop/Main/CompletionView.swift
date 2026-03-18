@@ -12,18 +12,32 @@ struct CompletionView: View {
     @State private var showIcon = false
     @State private var showTitle = false
     @State private var showTaskLabel = false
+    @State private var showRepeatCount = false
     @State private var showUnlockCard = false
     @State private var showBadges = false
     @State private var showButton = false
+    @State private var confettiActive = false
 
     var taskTitle: String { navigationRouter.completedTaskTitle }
     var taskType: String { navigationRouter.completedTaskType }
     var usageMinutes: Int { taskType == "deep" ? appState.deepUsageMinutes : appState.quickUsageMinutes }
     var windowHours: Int { taskType == "deep" ? appState.deepWindowHours : appState.quickWindowHours }
+    var repeatCount: Int { appState.completionCount(for: taskTitle) }
+
+    var badges: [(String, String, String)] {[
+        ("flame.fill", "\(appState.streak)", "day streak"),
+        ("checkmark.circle.fill", "Done", taskType == "deep" ? "deep focus" : "quick reset"),
+        ("timer", taskType == "deep" ? "~20 min" : "~5 min", "focused"),
+    ]}
 
     var body: some View {
         ZStack(alignment: .bottom) {
             Color(hex: "#F5F2EA").ignoresSafeArea()
+
+            // Confetti
+            ConfettiView(isActive: $confettiActive)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
 
             VStack(spacing: 0) {
                 Spacer()
@@ -39,8 +53,9 @@ struct CompletionView: View {
                             )
                         )
                         .frame(width: 100, height: 100)
-                    Text("🎉")
-                        .font(.system(size: 52))
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(Color.white)
                 }
                 .padding(.bottom, 22)
                 .scaleEffect(showIcon ? 1 : 0.82)
@@ -62,15 +77,35 @@ struct CompletionView: View {
                     .italic()
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-                    .padding(.bottom, 18)
+                    .padding(.bottom, repeatCount > 1 ? 6 : 18)
                     .opacity(showTaskLabel ? 1 : 0)
                     .offset(y: showTaskLabel ? 0 : 14)
 
+                // Repeat count
+                if repeatCount > 1 {
+                    HStack(spacing: 5) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(Color(hex: "#F4A340"))
+                        Text("You've done this \(repeatCount) times")
+                            .font(.custom(Theme.Fonts.bodyRegular, size: 13))
+                            .foregroundColor(Color(hex: "#F4A340"))
+                    }
+                    .padding(.bottom, 18)
+                    .opacity(showRepeatCount ? 1 : 0)
+                    .offset(y: showRepeatCount ? 0 : 10)
+                }
+
                 // Unlock card
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Apps are now unlocked")
-                        .font(.custom(Theme.Fonts.bodyRegular, size: 13))
-                        .foregroundColor(Color(hex: "#7a7060"))
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.open.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(hex: "#4f9e6a"))
+                        Text("Apps are now unlocked")
+                            .font(.custom(Theme.Fonts.bodyRegular, size: 13))
+                            .foregroundColor(Color(hex: "#7a7060"))
+                    }
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             HStack(alignment: .lastTextBaseline, spacing: 6) {
@@ -86,8 +121,14 @@ struct CompletionView: View {
                                 .foregroundColor(Color(hex: "#7a7060"))
                         }
                         Spacer()
-                        Text("🔓")
-                            .font(.system(size: 28))
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(hex: "#4f9e6a").opacity(0.12))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "lock.open.fill")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(Color(hex: "#4f9e6a"))
+                        }
                     }
                 }
                 .padding(18)
@@ -104,14 +145,16 @@ struct CompletionView: View {
 
                 // Badge row
                 HStack(spacing: 10) {
-                    ForEach([
-                        ("🔥", "\(appState.streak)", "day streak"),
-                        ("✅", "Task", "done"),
-                        ("⏱", taskType == "deep" ? "~20 min" : "~5 min", "focused")
-                    ], id: \.1) { badge in
-                        VStack(spacing: 5) {
-                            Text(badge.0)
-                                .font(.system(size: 22))
+                    ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
+                        VStack(spacing: 6) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color(hex: "#F4A340").opacity(0.12))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: badge.0)
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(Color(hex: "#F4A340"))
+                            }
                             Text(badge.1)
                                 .font(.custom(Theme.Fonts.headlineSemiBold, size: 13))
                                 .foregroundColor(Color(hex: "#1C1C1C"))
@@ -139,6 +182,7 @@ struct CompletionView: View {
 
             // Button
             Button(action: {
+                HapticManager.shared.buttonTap()
                 navigationRouter.showCompletionSheet = false
             }) {
                 Text("Back to Home")
@@ -154,9 +198,12 @@ struct CompletionView: View {
             .opacity(showButton ? 1 : 0)
         }
         .onAppear {
+            HapticManager.shared.taskComplete()
+            confettiActive = true
             withAnimation(.spring(response: 0.46, dampingFraction: 0.7).delay(0.1)) { showIcon = true }
             withAnimation(.easeOut(duration: 0.5).delay(0.4)) { showTitle = true }
             withAnimation(.easeOut(duration: 0.5).delay(0.8)) { showTaskLabel = true }
+            withAnimation(.easeOut(duration: 0.5).delay(1.0)) { showRepeatCount = true }
             withAnimation(.easeOut(duration: 0.5).delay(1.1)) { showUnlockCard = true }
             withAnimation(.easeOut(duration: 0.5).delay(1.5)) { showBadges = true }
             withAnimation(.easeOut(duration: 0.5).delay(2.0)) { showButton = true }

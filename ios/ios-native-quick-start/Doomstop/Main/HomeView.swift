@@ -16,21 +16,12 @@ struct HomeView: View {
         return "Good evening"
     }
 
-    var tierBadgeColor: Color {
-        switch appState.currentTier {
-        case "t3": return Color(hex: "#F4A340")
-        case "t2": return Color(hex: "#4f9e6a")
-        default:   return Color(hex: "#7a7060")
-        }
-    }
-
     var body: some View {
         ZStack {
             Color(hex: "#F5F2EA").ignoresSafeArea()
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    // Top padding
                     Color.clear.frame(height: 8)
 
                     // Header row
@@ -48,9 +39,10 @@ struct HomeView: View {
 
                         // Lock status badge
                         if appState.isUnlocked {
-                            HStack(spacing: 4) {
-                                Text("🔓")
-                                    .font(.system(size: 12))
+                            HStack(spacing: 5) {
+                                Image(systemName: "lock.open.fill")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(Color(hex: "#4f9e6a"))
                                 Text(appState.lockStatusLabel)
                                     .font(.custom(Theme.Fonts.bodyMedium, size: 12))
                                     .foregroundColor(Color(hex: "#4f9e6a"))
@@ -64,9 +56,10 @@ struct HomeView: View {
                                     .stroke(Color(hex: "#4f9e6a").opacity(0.32), lineWidth: 1)
                             )
                         } else {
-                            HStack(spacing: 4) {
-                                Text("🔒")
-                                    .font(.system(size: 12))
+                            HStack(spacing: 5) {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(Color(hex: "#d94f4f"))
                                 Text("Locked")
                                     .font(.custom(Theme.Fonts.bodyMedium, size: 12))
                                     .foregroundColor(Color(hex: "#d94f4f"))
@@ -85,24 +78,33 @@ struct HomeView: View {
 
                     // Intention card
                     Button(action: {
+                        HapticManager.shared.light()
                         navigationRouter.showIntentionSheet = true
                     }) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("TODAY'S INTENTION")
-                                .font(.custom(Theme.Fonts.bodyRegular, size: 11))
-                                .kerning(1.5)
-                                .foregroundColor(Color(hex: "#7a7060"))
-                            if let intention = appState.todayIntention, !intention.isEmpty {
-                                Text("\"\(intention)\"")
-                                    .font(.custom(Theme.Fonts.bodyMedium, size: 16))
-                                    .foregroundColor(Color(hex: "#1C1C1C"))
-                                    .lineSpacing(3)
-                            } else {
-                                Text("Tap to set one →")
-                                    .font(.custom(Theme.Fonts.bodyRegular, size: 15))
+                        HStack(alignment: .top, spacing: 14) {
+                            Image(systemName: "pencil.line")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Color(hex: "#F4A340"))
+                                .frame(width: 20)
+                                .padding(.top, 2)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("TODAY'S INTENTION")
+                                    .font(.custom(Theme.Fonts.bodyRegular, size: 11))
+                                    .kerning(1.5)
                                     .foregroundColor(Color(hex: "#7a7060"))
-                                    .italic()
+                                if let intention = appState.todayIntention, !intention.isEmpty {
+                                    Text("\"\(intention)\"")
+                                        .font(.custom(Theme.Fonts.bodyMedium, size: 16))
+                                        .foregroundColor(Color(hex: "#1C1C1C"))
+                                        .lineSpacing(3)
+                                } else {
+                                    Text("Tap to set one →")
+                                        .font(.custom(Theme.Fonts.bodyRegular, size: 15))
+                                        .foregroundColor(Color(hex: "#7a7060"))
+                                        .italic()
+                                }
                             }
+                            Spacer()
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(18)
@@ -128,12 +130,13 @@ struct HomeView: View {
                                     .font(.custom(Theme.Fonts.bodyRegular, size: 11))
                                     .kerning(1.2)
                                     .foregroundColor(Color(hex: "#1C1C1C").opacity(0.55))
-                                HStack(alignment: .lastTextBaseline, spacing: 8) {
+                                HStack(alignment: .lastTextBaseline, spacing: 10) {
                                     Text("\(appState.streak)")
                                         .font(.custom(Theme.Fonts.headlineBold, size: 48))
                                         .foregroundColor(Color(hex: "#1C1C1C"))
-                                    Text("🔥")
-                                        .font(.system(size: 32))
+                                    Image(systemName: "flame.fill")
+                                        .font(.system(size: 28, weight: .bold))
+                                        .foregroundColor(Color(hex: "#1C1C1C").opacity(0.7))
                                 }
                                 Text("consecutive task days")
                                     .font(.custom(Theme.Fonts.bodyRegular, size: 13))
@@ -170,81 +173,144 @@ struct HomeView: View {
 
                     // Today stats row
                     HStack(spacing: 12) {
-                        StatCard(label: "Tasks done", value: "\(appState.tasksCompletedToday)", sub: "today", isRed: false)
-                        StatCard(label: "Gate hits", value: "\(appState.gateAttemptsToday)", sub: "today", isRed: false)
-                        StatCard(label: "Emergency", value: "\(appState.emergenciesToday)", sub: appState.emergenciesToday > 0 ? "⚠️ streak at risk" : "today", isRed: appState.emergenciesToday > 0)
+                        StatCard(
+                            systemName: "checkmark.circle.fill",
+                            iconColor: Color(hex: "#4f9e6a"),
+                            label: "Tasks done",
+                            value: "\(appState.tasksCompletedToday)",
+                            sub: "today",
+                            isRed: false
+                        )
+                        StatCard(
+                            systemName: "shield.fill",
+                            iconColor: Color(hex: "#7a7060"),
+                            label: "Gate hits",
+                            value: "\(appState.gateAttemptsToday)",
+                            sub: "today",
+                            isRed: false
+                        )
+                        StatCard(
+                            systemName: "exclamationmark.triangle.fill",
+                            iconColor: appState.emergenciesToday > 0 ? Color(hex: "#d94f4f") : Color(hex: "#7a7060"),
+                            label: "Emergency",
+                            value: "\(appState.emergenciesToday)",
+                            sub: appState.emergenciesToday > 0 ? "streak at risk" : "today",
+                            isRed: appState.emergenciesToday > 0
+                        )
                     }
                     .padding(.horizontal, 24)
 
+                    // Streak freeze card if available
+                    if appState.freezesAvailable > 0 {
+                        HStack(spacing: 14) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color(hex: "#4f9e6a").opacity(0.12))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "snowflake")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(Color(hex: "#4f9e6a"))
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Streak freeze available")
+                                    .font(.custom(Theme.Fonts.bodyMedium, size: 14))
+                                    .foregroundColor(Color(hex: "#1C1C1C"))
+                                Text("Auto-applies if you miss a day this week")
+                                    .font(.custom(Theme.Fonts.bodyRegular, size: 12))
+                                    .foregroundColor(Color(hex: "#7a7060"))
+                            }
+                            Spacer()
+                        }
+                        .padding(16)
+                        .background(Color(hex: "#FDFAF4"))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color(hex: "#4f9e6a").opacity(0.2), lineWidth: 1)
+                        )
+                        .padding(.horizontal, 24)
+                    }
+
                     // Share card
-                    VStack(alignment: .leading, spacing: 0) {
-                        ZStack {
-                            LinearGradient(
-                                colors: [Color(hex: "#1C1C1C"), Color(hex: "#2a1f10")],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+                    ZStack {
+                        LinearGradient(
+                            colors: [Color(hex: "#1C1C1C"), Color(hex: "#2a1f10")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
 
-                            Circle()
-                                .fill(
-                                    RadialGradient(
-                                        colors: [Color(hex: "#F4A340").opacity(0.2), .clear],
-                                        center: .center,
-                                        startRadius: 0,
-                                        endRadius: 45
-                                    )
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [Color(hex: "#F4A340").opacity(0.2), .clear],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 45
                                 )
-                                .frame(width: 90, height: 90)
-                                .offset(x: 120, y: -28)
+                            )
+                            .frame(width: 90, height: 90)
+                            .offset(x: 120, y: -28)
 
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("THIS WEEK")
-                                    .font(.custom(Theme.Fonts.bodyRegular, size: 11))
-                                    .kerning(2)
-                                    .foregroundColor(Color.white.opacity(0.42))
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("THIS WEEK")
+                                .font(.custom(Theme.Fonts.bodyRegular, size: 11))
+                                .kerning(2)
+                                .foregroundColor(Color.white.opacity(0.42))
 
-                                HStack(alignment: .lastTextBaseline, spacing: 4) {
-                                    Text("\(appState.streak)")
-                                        .font(.custom(Theme.Fonts.headlineBold, size: 22))
-                                        .foregroundColor(Color(hex: "#F4A340"))
-                                    Text("-day streak 🔥")
-                                        .font(.custom(Theme.Fonts.headlineSemiBold, size: 22))
-                                        .foregroundColor(Color.white)
-                                }
+                            HStack(alignment: .center, spacing: 6) {
+                                Text("\(appState.streak)-day streak")
+                                    .font(.custom(Theme.Fonts.headlineSemiBold, size: 22))
+                                    .foregroundColor(Color.white)
+                                Image(systemName: "flame.fill")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(Color(hex: "#F4A340"))
+                            }
 
-                                Text("Tap to share your progress")
-                                    .font(.custom(Theme.Fonts.bodyRegular, size: 13))
-                                    .foregroundColor(Color.white.opacity(0.38))
-                                    .padding(.bottom, 14)
+                            Text("Tap to share your progress")
+                                .font(.custom(Theme.Fonts.bodyRegular, size: 13))
+                                .foregroundColor(Color.white.opacity(0.38))
+                                .padding(.bottom, 14)
 
-                                Button(action: {}) {
-                                    Text("Share Streak ↗")
+                            Button(action: {
+                                HapticManager.shared.light()
+                            }) {
+                                HStack(spacing: 6) {
+                                    Text("Share Streak")
                                         .font(.custom(Theme.Fonts.headlineSemiBold, size: 14))
                                         .foregroundColor(Color(hex: "#1C1C1C"))
-                                        .padding(.horizontal, 18)
-                                        .padding(.vertical, 9)
-                                        .background(Color(hex: "#F4A340"))
-                                        .cornerRadius(10)
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(Color(hex: "#1C1C1C"))
                                 }
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 9)
+                                .background(Color(hex: "#F4A340"))
+                                .cornerRadius(10)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(20)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(20)
                     }
                     .cornerRadius(18)
                     .padding(.horizontal, 24)
 
                     // Do a task CTA
                     Button(action: {
+                        HapticManager.shared.buttonTap()
                         navigationRouter.showTaskSheet = true
                     }) {
-                        Text("+ Do a task now")
-                            .font(.custom(Theme.Fonts.headlineSemiBold, size: 16))
-                            .foregroundColor(Color(hex: "#1C1C1C"))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 17)
-                            .background(Color(hex: "#F4A340"))
-                            .cornerRadius(14)
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Color(hex: "#1C1C1C"))
+                            Text("Do a task now")
+                                .font(.custom(Theme.Fonts.headlineSemiBold, size: 16))
+                                .foregroundColor(Color(hex: "#1C1C1C"))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 17)
+                        .background(Color(hex: "#F4A340"))
+                        .cornerRadius(14)
                     }
                     .padding(.horizontal, 24)
 
@@ -257,6 +323,8 @@ struct HomeView: View {
 
 // MARK: - Stat Card
 struct StatCard: View {
+    let systemName: String
+    let iconColor: Color
     let label: String
     let value: String
     let sub: String
@@ -264,14 +332,17 @@ struct StatCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
+            Image(systemName: systemName)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(iconColor)
+            Text(value)
+                .font(.custom(Theme.Fonts.headlineBold, size: 28))
+                .foregroundColor(isRed ? Color(hex: "#d94f4f") : Color(hex: "#1C1C1C"))
             Text(label)
                 .font(.custom(Theme.Fonts.bodyRegular, size: 11))
                 .foregroundColor(Color(hex: "#7a7060"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-            Text(value)
-                .font(.custom(Theme.Fonts.headlineBold, size: 28))
-                .foregroundColor(isRed ? Color(hex: "#d94f4f") : Color(hex: "#1C1C1C"))
             Text(sub)
                 .font(.custom(Theme.Fonts.bodyRegular, size: 10))
                 .foregroundColor(isRed ? Color(hex: "#d94f4f") : Color(hex: "#7a7060"))
