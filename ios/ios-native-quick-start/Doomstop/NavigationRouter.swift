@@ -44,6 +44,9 @@ class NavigationRouter: ObservableObject {
     @Published var showIntentionSheet: Bool = false
     @Published var showTaskSheet: Bool = false
     @Published var showGateSheet: Bool = false
+    @Published var showCompletionSheet: Bool = false
+    @Published var completedTaskTitle: String = ""
+    @Published var completedTaskType: String = "quick"
 
     // MARK: - Phase Navigation
     func navigateToPhase(_ phase: AppPhase) {

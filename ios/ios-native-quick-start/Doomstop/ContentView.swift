@@ -31,29 +31,45 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Placeholder Views (temporary, will be replaced)
-struct IntentionView: View {
-    var body: some View {
-        Text("Intention").foregroundColor(Theme.Colors.text)
-    }
-}
-
 struct MainView: View {
     @EnvironmentObject var navigationRouter: NavigationRouter
+    @EnvironmentObject var appState: AppState
 
     var body: some View {
-        TabView(selection: $navigationRouter.selectedTab) {
-            HomeView()
-                .tabItem { Label("Home", systemImage: "house.fill") }
-                .tag(MainTab.home)
-            ProgressView()
-                .tabItem { Label("Progress", systemImage: "chart.bar.fill") }
-                .tag(MainTab.progress)
-            SettingsView()
-                .tabItem { Label("Settings", systemImage: "gearshape.fill") }
-                .tag(MainTab.settings)
+        ZStack {
+            TabView(selection: $navigationRouter.selectedTab) {
+                HomeView()
+                    .tabItem { Label("Home", systemImage: "house.fill") }
+                    .tag(MainTab.home)
+                ProgressScreenView()
+                    .tabItem { Label("Progress", systemImage: "chart.bar.fill") }
+                    .tag(MainTab.progress)
+                SettingsView()
+                    .tabItem { Label("Settings", systemImage: "gearshape.fill") }
+                    .tag(MainTab.settings)
+            }
+            .accentColor(Theme.Colors.accent)
         }
-        .accentColor(Theme.Colors.accent)
+        .sheet(isPresented: $navigationRouter.showTaskSheet) {
+            TaskView()
+                .environmentObject(appState)
+                .environmentObject(navigationRouter)
+        }
+        .sheet(isPresented: $navigationRouter.showCompletionSheet) {
+            CompletionView()
+                .environmentObject(appState)
+                .environmentObject(navigationRouter)
+        }
+        .sheet(isPresented: $navigationRouter.showGateSheet) {
+            GateView()
+                .environmentObject(appState)
+                .environmentObject(navigationRouter)
+        }
+        .sheet(isPresented: $navigationRouter.showIntentionSheet) {
+            IntentionView()
+                .environmentObject(appState)
+                .environmentObject(navigationRouter)
+        }
     }
 }
 
